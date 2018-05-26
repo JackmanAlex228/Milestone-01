@@ -1,5 +1,7 @@
 #include <iostream>
+#include <vector>
 using namespace std;
+
 
 /*	I/O
 		READ			10	read into memory
@@ -24,13 +26,23 @@ using namespace std;
 	Terminate program	-99999
 */
 
-void Parse_Input_From_File(int command, int location) {
+void Parse_Input_From_File() {
 
 }
 
+//Taking in a Vector of Objects from Parse_Input? -Scott
+
+
+/*
+	This method will take in a Vector of Objects from Parse. 
+	From the Object, it will use command & location variables.
+	Based on the command value, the switch statement will handle distributing
+	the task to the corresponding command. Location variable will be available for
+	use when needed. -Scott
+*/
 void Calculate_Operations() {
 	
-	const int MEMORY_SIZE = 99;
+	const int MEMORY_SIZE = 99; 
 	int memory[MEMORY_SIZE];
 	int accumulator;
 	int result;
@@ -40,40 +52,53 @@ void Calculate_Operations() {
 
 	// Parse_Input_From_File(command, location)
 
-	// Things will be calculated here
+	//Calculations
+
+	/*
+	5/25/2018 Thinking of throwing the switch statement in a for-loop so that for each object
+	in the vector we get from Parse, we can loop thru and send out the corresponding command.
+	
+	What do you think Alex?
+	
+	-Scott	
+	*/
 
 	//To determine which Command has been sent, and execute calculations. -Scott
 	switch (command) {
 	
-	//Read
+	//Read a word from the keyboard into a specific location in memory. 
 	case 10:
 		memory[location] = inputToMemory;
 		break;
 	
-	//Write
+	//Write output to screen.
 	case 11:
+		cout << memory[location] << endl;
 		break;
 	
-	//Load
+	//Load a word from a specific location in memory into the accumulator.
 	case 20:
 		accumulator = memory[location];
 		break;
 	
-	//Store
+	//Store from accumulator to main memory
 	case 21:
+		memory[location] = accumulator;
 		break;
 
-	//Addition 
+	//Addition: Add a word from a specific location in memory to the word in the accumulator (leave the result in the accumulator). 
 	case 30:
 		result = accumulator + memory[location];
+		accumulator = result;
 		break;
 
-	//Subtraction 
+	//Subtraction: Subtract a word from a specific location in memory to the word in the accumulator (leave the result in the accumulator).
 	case 31:
 		result = accumulator - memory[location];
+		accumulator = result;
 		break;
 
-	//Division 
+	//Division: Divide the word in the accumulator by the word from a specific location in memory (leave the result in the accumulator).
 	case 32:
 		//Divisor can't be 0
 		if (memory[location] != 0) {
@@ -82,30 +107,50 @@ void Calculate_Operations() {
 		else {
 			result = 99999;
 		}
+		accumulator = result;
 		break;
 
-	//Multiplication 
+	//Multiplication: Multiply a word from a specific location in memory to the word in the accumulator (leave the result in the accumulator). 
 	case 33:
 		result = accumulator * memory[location];
+		accumulator = result;
 		break;
 	
-	//Branch
+	//Branch to a specific location in memory.
 	case 40:
 		break;
 	
-	//BranchNeg
+	//BranchNeg: Branch to a specific location in memory if result from input(s) is Negative.
 	case 41:
 		break;
 	
-	//BranchZero
+	//BranchZero: Branch to a specific location in memory if result from input(s) is 0.
 	case 42:
 		break;
 	
-	//Halt
+	//Halt: Stop program completely and exit.
 	case 43:
+		//System.exit() cpp related command.
+		break;
+
+	//Execute instructions.
+	case -99999:
+		//Run the instructions
+		break;
+
+	//Bad Divisor, exit program: Can't divide by 0.
+	case 99999:
+		//Exit Program as an error for Divisor being 0.
 		break;
 	}
-	//Cases for Memdump, break, continue? -Scott
+
+	/*
+	Cases for:
+	Memdump
+	Break(to make it skip an instruction or instructions?)
+	Continue(Not sure how this fits?) -Scott
+	*/				
+
 
 
 	// Output_Data()
