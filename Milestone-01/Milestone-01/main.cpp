@@ -1,6 +1,9 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <iomanip>
+#include <iterator>
+#include <array>
 
 using namespace std;
 
@@ -38,12 +41,129 @@ int Calculate_Operations(int command, int location);
 string fixMyString(string rawValue);
 string fixMyString(int rawValue);
 
+// Alan & Typer parse from file
+class Menu {
+	int code;
+	string name;
+public:
+	Menu(int c, string n) : code(c), name(n) {};
+	Menu(const Menu &m) : code(m.code), name(m.name) { }
 
-//Alan & Tyler
-void Parse_Input_From_File() {
+	void setCode(int c) {
+		this->code = c;
+	}
 
+	void setName(string n) {
+		this->name = n;
+	}
+
+	int getCode() {
+		return code;
+	}
+
+	string getName() {
+		return name;
+	}
+};
+
+void showMenu(vector<Menu> &v) {
+	for (vector<Menu>::iterator it = v.begin(); it != v.end(); ++it) {
+		cout << it->getCode() << " - " << it->getName() << endl;
+	}
 }
 
+class Instruction {
+	int operation;
+	int operand;
+public:
+	Instruction(int opt, int opn) : operation(opt), operand(opn) {};
+	Instruction(const Instruction &i) : operation(i.operation), operand(i.operand) { }
+
+	void setOperation(int opt) {
+		this->operation = opt;
+	}
+
+	void setOperand(int opn) {
+		this->operand = opn;
+	}
+
+	int getOperation() {
+		return this->operation;
+	}
+
+	int getOperand() {
+		return this->operand;
+	}
+};
+
+void showMainMemory(vector<Instruction> &v) {
+	for (vector<Instruction>::iterator it = v.begin(); it != v.end(); ++it) {
+		cout << distance(v.begin(), it) << "\t" << it->getOperation() << " - " << it->getOperand() << endl;
+	}
+}
+
+//Alan & Tyler
+void Parse_Input() {
+	vector<Instruction> *mainMemory = new vector<Instruction>;
+	vector<Menu> *vecptr = new vector<Menu>;
+	vecptr->push_back(Menu(10, "READ"));
+	vecptr->push_back(Menu(11, "WRITE"));
+	vecptr->push_back(Menu(20, "LOAD"));
+	vecptr->push_back(Menu(21, "STORE"));
+	vecptr->push_back(Menu(30, "ADD"));
+	vecptr->push_back(Menu(31, "SUB"));
+	vecptr->push_back(Menu(32, "DIV"));
+	vecptr->push_back(Menu(33, "MULT"));
+	vecptr->push_back(Menu(40, "BRANCH"));
+	vecptr->push_back(Menu(41, "BRANCHNEG"));
+	vecptr->push_back(Menu(42, "BRANCHZERO"));
+	vecptr->push_back(Menu(43, "HALT"));
+	vecptr->push_back(Menu(-99999, "Terminate"));
+	string input;
+	int operation;
+	int operand;
+	long inst = 0;
+	bool menuQuit = false;
+	cout << "What action would you like to take?\n" << endl;
+	showMenu(*vecptr);
+
+	while (menuQuit == false)
+	{
+
+		cin >> input;
+		if (stoi(input) > 0) {
+			inst = stoi(input);
+			input = to_string(inst);
+			operation = stoi(input.substr(0, 2));
+			operand = stoi(input.substr(2, 2));
+
+			cout << "input: " << inst << endl;
+			cout << "first: " << operation << endl;
+			cout << "last: " << operand << endl;
+			if (any_of(vecptr->begin(), vecptr->end(), [operation](Menu i) {return i.getCode() == operation; })) {
+				if (operand >= 0 && operand<100) {
+					std::cout << "Pushing operation...\n";
+					mainMemory->push_back(Instruction(operation, operand));
+				}
+
+			}
+		}
+		else if (stoi(input) == -99999) {
+			std::cout << "Exiting....\n";
+			menuQuit = true;
+
+			//            inst = stoi(input);
+			//            input = to_string(inst);
+			//            operation = stoi(input.substr (1,2));
+			//            operand = stoi(input.substr (3,2));
+		}
+
+		cout << "instrucction" << inst << endl;
+
+	}
+	cout << "\n*********Memory********\n";
+	showMainMemory(*mainMemory);
+}
 
 //Initial loop thru our memory array.
 //Calls overloaded method to determine and execute the instructions.
@@ -270,6 +390,37 @@ string fixMyString(int rawValue) {
 }
 
 // Output_Data()
+void print(string accumulator, string instructCount, string instructRegister,
+	string operationCode, string operand, vector<vector<string>> mem)
+{
+	// Print out all the basic information summary
+	cout << "REGISTERS:" << endl
+		<< setw(20) << left << "Accumulator:" << setw(10) << right << accumulator << endl
+		<< setw(20) << left << "InstructionCounter:" << setw(10) << right << instructCount << endl
+		<< setw(20) << left << "InstructionRegister:" << setw(10) << right << instructRegister << endl
+		<< setw(20) << left << "OperationCode:" << setw(10) << right << operationCode << endl
+		<< setw(20) << left << "Operand:" << setw(10) << right << operand << endl << endl;
+
+	// Print all the memory headers
+	cout << "MEMORY:" << endl;
+	cout << setw(9.5) << "00" << setw(9.5) << "01" << setw(9.5) << "02" << setw(9.5)
+		<< "03" << setw(9.5) << "04" << setw(9.5) << "05" << setw(9.5) << "06"
+		<< setw(9.5) << "07" << setw(9.5) << "08" << setw(9.5) << "09" << endl;
+
+	// Print all the memory based off of a vector of vectors
+	for (int y = 0; y < 100; y++)
+	{
+		cout << setfill('0') << setw(2) << y << "    ";
+		for (int x = 0; x < 10; x++)
+		{
+			cout << setw(5) << mem[y][x] << "    ";
+		}
+		cout << endl;
+		y = y + 9;
+	}
+	cout << endl;
+
+}
 
 int main() {
 
@@ -380,7 +531,9 @@ int main() {
 	//memory[22] = "1115"; //Output Mem 15
 	//memory[23] = "4300"; //Halt
 
+	// process input
 	Calculate_Operations(memory);
+	// print (accumulator, instructCount, instructRegister, operationCode, operand, mem)
 
 	return 0;
 }
