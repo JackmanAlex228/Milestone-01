@@ -4,6 +4,7 @@
 #include <iomanip>
 #include <iterator>
 #include <array>
+#include <cstdlib>
 
 using namespace std;
 
@@ -30,9 +31,16 @@ CONTINUE
 Terminate program	-99999
 */
 
-//Global variables
-const int MEMORY_SIZE = 100;
-string memory[MEMORY_SIZE];
+// Constants
+#define MIN_DIGITS 3
+#define MAX_DIGITS 5
+#define NUM_ZERO 0
+#define MEMORY_SIZE 100
+#define TERMINATE -99999
+
+//Global variables (obsolite by constants)
+//const int MEMORY_SIZE = 100;
+//string memory[MEMORY_SIZE];
 int accumulator = 0;
 
 //Function prototypes
@@ -103,71 +111,46 @@ void showMainMemory(vector<Instruction> &v) {
 }
 
 //Alan & Tyler
-void Parse_Input() {
-	vector<Instruction> *mainMemory = new vector<Instruction>;
-	vector<Menu> *vecptr = new vector<Menu>;
-	vecptr->push_back(Menu(10, "READ"));
-	vecptr->push_back(Menu(11, "WRITE"));
-	vecptr->push_back(Menu(20, "LOAD"));
-	vecptr->push_back(Menu(21, "STORE"));
-	vecptr->push_back(Menu(30, "ADD"));
-	vecptr->push_back(Menu(31, "SUB"));
-	vecptr->push_back(Menu(32, "DIV"));
-	vecptr->push_back(Menu(33, "MULT"));
-	vecptr->push_back(Menu(40, "BRANCH"));
-	vecptr->push_back(Menu(41, "BRANCHNEG"));
-	vecptr->push_back(Menu(42, "BRANCHZERO"));
-	vecptr->push_back(Menu(43, "HALT"));
-	vecptr->push_back(Menu(-99999, "Terminate"));
-	string input;
+
+void parseInput(string &input, vector<Menu> &vMenu, vector<Instruction> &vMemory, bool &menuQuit)
+{
+	// operation is the command and operand is the location
 	int operation;
 	int operand;
 	long inst = 0;
-	bool menuQuit = false;
-	cout << "What action would you like to take?\n" << endl;
-	showMenu(*vecptr);
 
-	while (menuQuit == false)
+	// checking if the input is greater than 0 or if it is terminate
+	if (stoi(input) > NUM_ZERO)
 	{
+		inst = stoi(input);
+		input = to_string(inst);
 
-		cin >> input;
-		if (stoi(input) > 0) {
-			inst = stoi(input);
-			input = to_string(inst);
+		// checking if the input has 4 digits
+		if (input.length() > MIN_DIGITS && input.length() < MAX_DIGITS) {
 			operation = stoi(input.substr(0, 2));
 			operand = stoi(input.substr(2, 2));
 
-			cout << "input: " << inst << endl;
-			cout << "first: " << operation << endl;
-			cout << "last: " << operand << endl;
-			if (any_of(vecptr->begin(), vecptr->end(), [operation](Menu i) {return i.getCode() == operation; })) {
-				if (operand >= 0 && operand<100) {
-					std::cout << "Pushing operation...\n";
-					mainMemory->push_back(Instruction(operation, operand));
+			// checking if the command (variable operation) exists in the vector menu
+			// if it exists, storage in mainMemory
+			// if not, doesnt do anything
+			if (any_of(vMenu.begin(), vMenu.end(), [operation](Menu i) {return i.getCode() == operation; })) {
+				if (operand >= NUM_ZERO && operand<MEMORY_SIZE) {
+					std::cout << "Pushing instruccion into memory...\n";
+					vMemory.push_back(Instruction(operation, operand));
 				}
-
 			}
 		}
-		else if (stoi(input) == -99999) {
-			std::cout << "Exiting....\n";
-			menuQuit = true;
-
-			//            inst = stoi(input);
-			//            input = to_string(inst);
-			//            operation = stoi(input.substr (1,2));
-			//            operand = stoi(input.substr (3,2));
-		}
-
-		cout << "instrucction" << inst << endl;
-
 	}
-	cout << "\n*********Memory********\n";
-	showMainMemory(*mainMemory);
+	else if (stoi(input) == TERMINATE) { // -99999
+		std::cout << "Exiting....\n";
+		menuQuit = true;
+	}
+	//cout<<"instrucction: "<<inst<<endl;
 }
 
 //Initial loop thru our memory array.
 //Calls overloaded method to determine and execute the instructions.
-void Calculate_Operations(string memory[]) {
+void Calculate_Operations(vector<Instruction> memory) {
 
 	//Branching: Used to hold the location of where we're branching
 	int branchValue = 0;
@@ -209,7 +192,18 @@ Based on the command value, the switch statement will handle distributing
 the task to the corresponding command. Location variable will be available for
 use when needed. -Scott
 */
-int Calculate_Operations(int command, int location) {
+
+/*
+From here, we'll need to switch to the memory vector from the memory array. I
+presume we'll be using the vector of type Instruction.
+Operations:
++ setOperation(int)
++ setOperand(int)
++ getOperation()
++ getOperand()
+-Alex
+*/
+int Calculate_Operations(int command, int location /*, vector<Instruction> memory*/) {
 	string input;
 	string convertedAccumulator;
 	int branchValue = 0;
@@ -231,7 +225,7 @@ int Calculate_Operations(int command, int location) {
 		//Sends to helper method to convert to string and conform to pattern.
 		input = fixMyString(input);
 		cout << "Input entered: " << input << endl;
-		memory[location] = input;
+		memory[location] = input; // First instance of "memory" in this function needs to change
 		break;
 
 		//Write output to screen.
@@ -285,7 +279,7 @@ int Calculate_Operations(int command, int location) {
 		else {
 			cout << "CRITICAL ERROR: Cannot Divide by 0." << endl;
 			cout << "Exiting..." << endl;
-			exit(0);
+			exit(0); // I'm getting an error here for some reason
 		}
 		break;
 
@@ -390,6 +384,15 @@ string fixMyString(int rawValue) {
 }
 
 // Output_Data()
+/*
+There are a few things we need to modify about this function. We'll need to update
+the type for string and create variables for the following
+* instrctCount
+* instructRegister
+* operationCode
+* operand
+-Alex
+*/
 void print(string accumulator, string instructCount, string instructRegister,
 	string operationCode, string operand, vector<vector<string>> mem)
 {
@@ -424,25 +427,63 @@ void print(string accumulator, string instructCount, string instructRegister,
 
 int main() {
 
-	//Throwaway, to initialize the array.
-	for (int i = 0; i < MEMORY_SIZE; i++)
-	{
-		memory[i] = "0000";
+	// Initializing mainMemory and menu(vecptr)
+	vector<Instruction> *mainMemory = new vector<Instruction>;
+	vector<Menu> *vecptr = new vector<Menu>;
+	string input;
+	bool menuQuit = false;
 
+	// Operations that are available in the program
+	vecptr->push_back(Menu(10, "READ"));
+	vecptr->push_back(Menu(11, "WRITE"));
+	vecptr->push_back(Menu(20, "LOAD"));
+	vecptr->push_back(Menu(21, "STORE"));
+	vecptr->push_back(Menu(30, "ADD"));
+	vecptr->push_back(Menu(31, "SUB"));
+	vecptr->push_back(Menu(32, "DIV"));
+	vecptr->push_back(Menu(33, "MULT"));
+	vecptr->push_back(Menu(40, "BRANCH"));
+	vecptr->push_back(Menu(41, "BRANCHNEG"));
+	vecptr->push_back(Menu(42, "BRANCHZERO"));
+	vecptr->push_back(Menu(43, "HALT"));
+	vecptr->push_back(Menu(-99999, "Terminate"));
+	cout << "What action would you like to take?\n" << endl;
+
+	//Displaying the menu with the options
+	showMenu(*vecptr);
+
+	// Loop for entering instrucciones from the user
+	while (menuQuit == false)
+	{
+		cin >> input;
+		// Parsing the input
+		parseInput(input, *vecptr, *mainMemory, menuQuit);
 	}
+	// Displaying that mainMemory has storaged
+	cout << "\n*********Memory********\n";
+	showMainMemory(*mainMemory);
+
+	// Is this where we put in the calculation functions?
+
+	//Throwaway, to initialize the array.
+	//for (int i = 0; i < MEMORY_SIZE; i++)
+	//{
+	//	memory[i] = "0000";
+	//
+	//}
 
 
 	//Test case #1
-	memory[0] = "1007";
-	memory[1] = "1008";
-	memory[2] = "2007";
-	memory[3] = "3008";
-	memory[4] = "2109";
-	memory[5] = "1109";
-	memory[6] = "4300";
-	memory[7] = "0000";
-	memory[8] = "0000";
-	memory[9] = "0000";
+	//memory[0] = "1007";
+	//memory[1] = "1008";
+	//memory[2] = "2007";
+	//memory[3] = "3008";
+	//memory[4] = "2109";
+	//memory[5] = "1109";
+	//memory[6] = "4300";
+	//memory[7] = "0000";
+	//memory[8] = "0000";
+	//memory[9] = "0000";
 
 
 	////Test case #2
@@ -532,7 +573,7 @@ int main() {
 	//memory[23] = "4300"; //Halt
 
 	// process input
-	Calculate_Operations(memory);
+	//Calculate_Operations(memory);
 	// print (accumulator, instructCount, instructRegister, operationCode, operand, mem)
 
 	return 0;
